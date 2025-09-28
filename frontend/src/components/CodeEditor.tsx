@@ -144,46 +144,51 @@ const CodeEditor: React.FC = () => {
             </button>
           </div>
 
-          <div className="editor-panel">
-            <div className="code-section">
+          <div className="workspace">
+            <div className="code-column">
               <div className="section-header">
                 <h3>Code Editor</h3>
                 {currentFile && <span className="file-indicator">File: {currentFile}</span>}
               </div>
-              <Editor
-                height="400px"
-                language={language}
-                value={code}
-                onChange={(value) => setCode(value || '')}
-                theme="vs-dark"
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  lineNumbers: 'on',
-                  roundedSelection: false,
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  tabSize: 2,
-                  insertSpaces: true
-                }}
-              />
+              <div className="editor-wrapper">
+                <Editor
+                  height="100%"
+                  language={language}
+                  value={code}
+                  onChange={(value) => setCode(value || '')}
+                  theme="vs-dark"
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    roundedSelection: false,
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    insertSpaces: true
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="input-section">
-              <div className="section-header">
-                <h3>Input</h3>
+            <div className="side-column">
+              <div className="panel input-panel">
+                <div className="section-header">
+                  <h3>Input</h3>
+                </div>
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Enter input for your program (if needed)..."
+                  className="input-textarea"
+                />
               </div>
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Enter input for your program (if needed)..."
-                className="input-textarea"
-                rows={4}
-              />
+
+              <div className="panel output-panel">
+                <OutputDisplay result={output} loading={loading} />
+              </div>
             </div>
           </div>
-
-          <OutputDisplay result={output} loading={loading} />
         </div>
       </div>
     </div>
