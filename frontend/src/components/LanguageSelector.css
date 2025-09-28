@@ -1,0 +1,38 @@
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.language-selector label {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.language-dropdown {
+  background-color: #3c3c3c;
+  color: #ffffff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.language-dropdown:hover {
+  border-color: #007acc;
+}
+
+.language-dropdown:focus {
+  border-color: #007acc;
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+}
+
+.language-dropdown option {
+  background-color: #3c3c3c;
+  color: #ffffff;
+  padding: 0.5rem;
+}

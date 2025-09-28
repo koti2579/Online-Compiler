@@ -1,0 +1,171 @@
+.code-editor-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #ffffff;
+}
+
+.user-info {
+  margin-left: 1rem;
+  color: #cccccc;
+  font-size: 0.9rem;
+}
+
+.logout-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+.editor-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: #252526;
+  border-right: 1px solid #3e3e42;
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.run-btn {
+  background-color: #007acc;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.run-btn:hover:not(:disabled) {
+  background-color: #005a9e;
+}
+
+.run-btn:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.editor-panel {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.code-section {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #3e3e42;
+}
+
+.input-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+.file-indicator {
+  font-size: 0.8rem;
+  color: #cccccc;
+  background-color: #3e3e42;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+}
+
+.input-textarea {
+  flex: 1;
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border: none;
+  padding: 1rem;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+}
+
+.input-textarea::placeholder {
+  color: #6a6a6a;
+}
+
+@media (max-width: 768px) {
+  .editor-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .editor-panel {
+    flex-direction: column;
+  }
+  
+  .code-section {
+    border-right: none;
+    border-bottom: 1px solid #3e3e42;
+  }
+}

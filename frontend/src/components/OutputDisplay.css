@@ -1,0 +1,128 @@
+.output-display {
+  background-color: #1e1e1e;
+  border-top: 1px solid #3e3e42;
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+}
+
+.output-display .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.execution-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8rem;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.status.success {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.status.error {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #dc3545;
+}
+
+.execution-time {
+  color: #cccccc;
+}
+
+.output-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.output-content.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #cccccc;
+}
+
+.output-content.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a6a6a;
+  font-style: italic;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #3e3e42;
+  border-top: 2px solid #007acc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.output-section,
+.error-section {
+  margin-bottom: 1rem;
+}
+
+.output-section h4,
+.error-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.output-text,
+.error-text {
+  background-color: #2d2d30;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin: 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+}
+
+.output-text {
+  color: #ffffff;
+}
+
+.error-text {
+  color: #ff6b6b;
+  border-color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.no-output {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a6a6a;
+  font-style: italic;
+  padding: 2rem;
+}
