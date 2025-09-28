@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Online Compiler – Project Documentation</title>
+    <style>
+      :root {
+        --bg: #0f1217;
+        --panel: #151922;
+        --text: #e6e6e6;
+        --muted: #a9b1bd;
+        --primary: #4f86ff;
+        --accent: #2fd6b5;
+        --border: #253046;
+      }
+
+      /* Screen styles */
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 24px 28px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .toc {
+        background: #0f131b;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+        margin: 20px 0 28px;
+      }
+      .toc h2 { font-size: 18px; margin: 0 0 8px; }
+      .toc ul { margin: 8px 0 0; padding-left: 18px; }
+      .toc a { color: var(--accent); text-decoration: none; }
+      .toc a:hover { text-decoration: underline; }
+
+      h2 {
+        margin: 28px 0 8px;
+        font-size: 22px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 6px;
+      }
+      h3 { margin: 18px 0 6px; font-size: 18px; }
+      p { margin: 10px 0; }
+      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+      pre {
+        background: #0f131b;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        overflow: auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 16px;
+      }
+      .card {
+        background: #0f131b;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      ul { margin: 8px 0 12px; }
+      li { margin: 6px 0; }
+      .badge { color: var(--muted); font-size: 12px; }
+      .callout {
+        border-left: 4px solid var(--primary);
+        padding: 12px 14px;
+        background: rgba(79,134,255,0.08);
+        border-radius: 8px;
+        margin: 10px 0 16px;
+      }
+      .footer-note { color: var(--muted); font-size: 12px; margin-top: 24px; }
+
+      /* Print styles for PDF export */
+      @media print {
+        body { background: #fff; color: #000; }
+        .container { box-shadow: none; border: none; background: #fff; }
+        a { color: #000; }
+        .toc { background: #fff; border: 1px solid #ddd; }
+        pre { background: #f7f7f7; border-color: #ddd; }
+        .callout { background: #eef4ff; border-color: #7aa2ff; }
+        header { page-break-after: avoid; }
+        h2 { page-break-after: avoid; }
+        .card { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <div>
+          <div class="title">Online Compiler – Project Documentation</div>
+          <div class="meta">Version 1.0 • Generated on <span id="doc-date"></span></div>
+        </div>
+        <div class="badge">Frontend: React + TypeScript • Backend: Node.js + Express • DB: MongoDB</div>
+      </header>
+
+      <section class="toc">
+        <h2>Contents</h2>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#goals">Project Goals</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="#frontend">Frontend</a></li>
+          <li><a href="#backend">Backend & APIs</a></li>
+          <li><a href="#data-models">Data Models</a></li>
+          <li><a href="#execution-flow">Execution Flow</a></li>
+          <li><a href="#security">Security</a></li>
+          <li><a href="#setup">Setup & Environments</a></li>
+          <li><a href="#deployment">Deployment</a></li>
+          <li><a href="#testing">Testing & Quality</a></li>
+          <li><a href="#troubleshooting">Troubleshooting</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+        </ul>
+      </section>
+
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>Online Compiler is a full‑stack web application that enables authenticated users to write, run, and persist code across multiple languages with real‑time feedback in a modern, responsive UI.</p>
+        <div class="grid">
+          <div class="card">
+            <h3>Tech Stack</h3>
+            <ul>
+              <li><strong>Frontend:</strong> React, TypeScript, Axios, CRA</li>
+              <li><strong>Backend:</strong> Node.js, Express, Mongoose, JWT</li>
+              <li><strong>Database:</strong> MongoDB</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Key Features</h3>
+            <ul>
+              <li>Syntax‑highlighted editor with language templates</li>
+              <li>Input and output panels with clear separation</li>
+              <li>File CRUD and secure authentication</li>
+              <li>Server‑side code execution with rate limiting</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="goals">
+        <h2>Project Goals</h2>
+        <ul>
+          <li>Deliver a secure, responsive online compiler with a clean, professional UI.</li>
+          <li>Minimize friction for learning, prototyping, and interview practice.</li>
+          <li>Enable fast round‑trip execution with robust error handling.</li>
+        </ul>
+        <h3>Success Criteria</h3>
+        <ul>
+          <li>Multi‑language support: JavaScript, Python, Java, C/C++, PHP</li>
+          <li>Median run latency under 2 seconds for typical snippets</li>
+          <li>JWT‑based auth protecting file operations and code execution</li>
+          <li>Users complete “write → run → save” in ≤3 clicks</li>
+        </ul>
+      </section>
+
+      <section id="architecture">
+        <h2>Architecture</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Frontend</h3>
+            <ul>
+              <li><code>src/components/CodeEditor.tsx</code> – Editor, controls, run action</li>
+              <li><code>src/components/OutputDisplay.tsx</code> – Result rendering</li>
+              <li><code>src/components/FileManager.tsx</code> – File list & actions</li>
+              <li><code>src/contexts/AuthContext.tsx</code> – Auth, axios baseURL</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Backend</h3>
+            <ul>
+              <li><code>server.js</code> & <code>index.js</code> – Express setup & routes</li>
+              <li><code>routes/auth.js</code> – Login/Register</li>
+              <li><code>routes/files.js</code> – File CRUD</li>
+              <li><code>routes/code.js</code> – <code>POST /api/code/execute</code>, languages</li>
+              <li><code>services/codeExecutor.js</code> – Language runners</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Health Check:</strong> <code>GET /api/health</code> returns status and timestamp.
+        </div>
+      </section>
+
+      <section id="frontend">
+        <h2>Frontend</h2>
+        <h3>Layout & UX</h3>
+        <ul>
+          <li>Two‑column layout: editor left; input/output stack right.</li>
+          <li>Language selector and Run button grouped as primary controls.</li>
+          <li>Responsive grid; panels scroll independently.</li>
+        </ul>
+        <h3>Key Interactions</h3>
+        <ul>
+          <li><strong>Run Code:</strong> posts <code>{ code, language, input }</code> to API.</li>
+          <li><strong>Save/Load/Delete:</strong> file actions via <code>FileManager</code>.</li>
+          <li><strong>Auth:</strong> JWT stored in context; axios attaches <code>Authorization</code> header.</li>
+        </ul>
+      </section>
+
+      <section id="backend">
+        <h2>Backend & APIs</h2>
+        <h3>Endpoints</h3>
+        <ul>
+          <li><strong>Auth</strong> (<code>/api/auth</code>): <code>POST /login</code>, <code>POST /register</code></li>
+          <li><strong>Files</strong> (<code>/api/files</code>): list, get, create, update, delete</li>
+          <li><strong>Code</strong> (<code>/api/code</code>): <code>POST /execute</code>, <code>GET /languages</code></li>
+        </ul>
+        <h3>Execute Code</h3>
+        <pre>{
+  "code": "print(input())",
+  "language": "python",
+  "input": "Hello"
+}</pre>
+        <p>Response contains <code>output</code>, <code>error</code>, <code>exitCode</code>, and <code>executionTime</code>.</p>
+        <h3>Validation & Limits</h3>
+        <ul>
+          <li>Supported languages: <code>javascript</code>, <code>python</code>, <code>java</code>, <code>cpp</code>, <code>c</code>, <code>php</code></li>
+          <li>Code length limit: 50KB</li>
+          <li>Rate limiting applied to execution route</li>
+        </ul>
+      </section>
+
+      <section id="data-models">
+        <h2>Data Models</h2>
+        <h3>CodeFile</h3>
+        <pre>userId: ObjectId (ref User)
+filename: String (unique per user, max 100)
+code: String (max 100000)
+language: String (enum: javascript, python, java, cpp, c, php)
+timestamps: createdAt, updatedAt
+indexes: (userId, filename) unique; (userId, updatedAt)</pre>
+        <h3>User</h3>
+        <p>Stores credentials and profile; passwords hashed; JWT issued on login.</p>
+      </section>
+
+      <section id="execution-flow">
+        <h2>Execution Flow</h2>
+        <ol>
+          <li>User selects language and enters code & input.</li>
+          <li>Frontend posts to <code>POST /api/code/execute</code> with JWT.</li>
+          <li>Backend validates payload and dispatches to language runner.</li>
+          <li>Runner compiles/executes (e.g., <code>gcc</code> for C, Node.js for JS).</li>
+          <li>Stdout/stderr captured and returned to frontend.</li>
+        </ol>
+      </section>
+
+      <section id="security">
+        <h2>Security</h2>
+        <ul>
+          <li>JWT authentication; protected routes require <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+          <li>Input validation on all endpoints; error handling middleware.</li>
+          <li>Environment secrets stored in <code>backend/.env</code> and ignored by Git.</li>
+          <li>Server‑side rate limiting for code execution to prevent abuse.</li>
+        </ul>
+      </section>
+
+      <section id="setup">
+        <h2>Setup & Environments</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Backend</h3>
+            <pre>cd backend
+npm install
+
+.env:
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/online-compiler
+JWT_SECRET=replace_with_a_strong_secret
+
+npm run dev</pre>
+          </div>
+          <div class="card">
+            <h3>Frontend</h3>
+            <pre>cd frontend
+npm install
+
+.env (optional):
+REACT_APP_API_URL=http://localhost:5000/api
+
+npm start</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="deployment">
+        <h2>Deployment</h2>
+        <ul>
+          <li>Frontend build: <code>npm run build</code> → <code>frontend/build</code></li>
+          <li>Backend hosted on Node with environment variables configured</li>
+          <li>Optional: serve static frontend from the backend in production</li>
+        </ul>
+      </section>
+
+      <section id="testing">
+        <h2>Testing & Quality</h2>
+        <ul>
+          <li>Unit tests for services and components (extend CRA test setup).</li>
+          <li>API tests for auth, files, and code execution.</li>
+          <li>Logging and metrics for execution latency and error rates.</li>
+        </ul>
+      </section>
+
+      <section id="troubleshooting">
+        <h2>Troubleshooting</h2>
+        <ul>
+          <li><strong>ERR_CONNECTION_REFUSED:</strong> ensure backend running on <code>PORT=5000</code>.</li>
+          <li><strong>401 Unauthorized:</strong> missing/expired JWT; re‑login.</li>
+          <li><strong>MongoDB errors:</strong> verify <code>MONGO_URI</code> and service status.</li>
+          <li><strong>Compilation failures:</strong> check language syntax and limits.</li>
+        </ul>
+      </section>
+
+      <section id="roadmap">
+        <h2>Roadmap</h2>
+        <ul>
+          <li>MVP: robust editor, files, auth, execution, health check</li>
+          <li>Polish: themes, keyboard shortcuts, saved inputs, share output</li>
+          <li>Scale: execution isolation, caching runtimes, observability</li>
+          <li>Docs: examples per language, API reference, deployment guide</li>
+        </ul>
+      </section>
+
+      <p class="footer-note">Tip: To export this document, use your browser’s Print → “Save as PDF”.</p>
+    </main>
+
+    <script>
+      document.getElementById('doc-date').textContent = new Date().toLocaleDateString();
+    </script>
+  </body>
+  </html>
