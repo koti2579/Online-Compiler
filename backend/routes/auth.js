@@ -1,121 +1,406 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
-const auth = require('../middleware/auth');
+const { 
+  authenticateToken, 
+  generateToken, 
+  generateRefreshToken, 
+  verifyRefreshToken 
+} = require('../middleware/auth');
 
 const router = express.Router();
 
-// Register
-router.post('/register', async (req, res) => {
+// Rate limiting for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: {
+    error: 'Too many authentication attempts, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Stricter rate limiting for login attempts
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // limit each IP to 3 login attempts per windowMs
+  message: {
+    error: 'Too many login attempts, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Input sanitization middleware
+const sanitizeInput = (req, res, next) => {
+  if (req.body.email) {
+    req.body.email = req.body.email.trim().toLowerCase();
+  }
+  if (req.body.username) {
+    req.body.username = req.body.username.trim();
+  }
+  if (req.body.identifier) {
+    req.body.identifier = req.body.identifier.trim();
+  }
+  next();
+};
+
+// Validation middleware
+const validateSignup = (req, res, next) => {
+  const { username, email, password, confirmPassword } = req.body;
+  const errors = [];
+
+  // Username validation
+  if (!username || username.length < 3 || username.length > 30) {
+    errors.push('Username must be between 3 and 30 characters');
+  }
+  if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+    errors.push('Username can only contain letters, numbers, and underscores');
+  }
+
+  // Email validation
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.push('Please provide a valid email address');
+  }
+
+  // Password validation
+  if (!password || password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  }
+  if (password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+  }
+
+  // Confirm password validation
+  if (password !== confirmPassword) {
+    errors.push('Passwords do not match');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+
+  next();
+};
+
+const validateLogin = (req, res, next) => {
+  const { identifier, password } = req.body;
+  const errors = [];
+
+  if (!identifier || !identifier.trim()) {
+    errors.push('Username or email is required');
+  }
+
+  if (!password) {
+    errors.push('Password is required');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ error: 'Validation failed', details: errors });
+  }
+
+  next();
+};
+
+// @route   POST /api/auth/signup
+// @desc    Register a new user
+// @access  Public
+router.post('/signup', authLimiter, sanitizeInput, validateSignup, async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Validation
-    if (!username || !email || !password) {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
-    // Check if user exists
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { username }] 
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [
+        { email: email },
+        { username: username }
+      ]
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      if (existingUser.email === email) {
+        return res.status(409).json({ 
+          error: 'User with this email already exists' 
+        });
+      } else {
+        return res.status(409).json({ 
+          error: 'Username is already taken' 
+        });
+      }
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
+    // Create new user
     const user = new User({
       username,
       email,
-      password: hashedPassword
+      password // Will be hashed by the pre-save middleware
     });
 
     await user.save();
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'fallback-secret-key',
-      { expiresIn: '7d' }
-    );
+    // Generate tokens
+    const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Remove sensitive data from response
+    const userResponse = user.toJSON();
 
     res.status(201).json({
-      message: 'User created successfully',
+      message: 'User registered successfully',
+      user: userResponse,
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
-      }
+      refreshToken
     });
+
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Server error during registration' });
+    console.error('Signup error:', error);
+
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors 
+      });
+    }
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({ 
+        error: `${field.charAt(0).toUpperCase() + field.slice(1)} already exists` 
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'Internal server error during registration' 
+    });
   }
 });
 
-// Login
-router.post('/login', async (req, res) => {
+// @route   POST /api/auth/login
+// @desc    Login user
+// @access  Public
+router.post('/login', loginLimiter, sanitizeInput, validateLogin, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, password, rememberMe } = req.body;
 
-    // Validation
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    // Find user by email or username
+    const user = await User.findByEmailOrUsername(identifier);
+
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'Invalid details',
+        message: 'Username/email or password is incorrect'
+      });
     }
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+    // Check if account is locked
+    if (user.isLocked) {
+      return res.status(423).json({ 
+        error: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' 
+      });
     }
 
     // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+    const isPasswordValid = await user.comparePassword(password);
+
+    if (!isPasswordValid) {
+      // Increment login attempts
+      await user.incLoginAttempts();
+      
+      return res.status(401).json({ 
+        error: 'Invalid details',
+        message: 'Username/email or password is incorrect'
+      });
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'fallback-secret-key',
-      { expiresIn: '7d' }
-    );
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts();
+
+    // Generate tokens
+    const tokenExpiry = rememberMe ? '30d' : '7d';
+    const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Remove sensitive data from response
+    const userResponse = user.toJSON();
 
     res.json({
       message: 'Login successful',
+      user: userResponse,
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
-      }
+      refreshToken
     });
+
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Server error during login' });
+    res.status(500).json({ 
+      error: 'Internal server error during login' 
+    });
   }
 });
 
-// Get current user
-router.get('/me', auth, async (req, res) => {
+// @route   POST /api/auth/refresh
+// @desc    Refresh access token
+// @access  Public
+router.post('/refresh', async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
-    res.json(user);
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ 
+        error: 'Refresh token is required' 
+      });
+    }
+
+    // Verify refresh token
+    const decoded = verifyRefreshToken(refreshToken);
+    
+    // Check if user still exists
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'User not found' 
+      });
+    }
+
+    // Generate new access token
+    const newToken = generateToken(user._id);
+
+    res.json({
+      token: newToken
+    });
+
   } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Token refresh error:', error);
+    res.status(401).json({ 
+      error: 'Invalid refresh token' 
+    });
+  }
+});
+
+// @route   POST /api/auth/logout
+// @desc    Logout user (client-side token removal)
+// @access  Private
+router.post('/logout', authenticateToken, (req, res) => {
+  // In a stateless JWT system, logout is handled client-side
+  // Here we just confirm the logout
+  res.json({ 
+    message: 'Logged out successfully' 
+  });
+});
+
+// @route   GET /api/auth/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', authenticateToken, (req, res) => {
+  res.json({
+    user: req.user
+  });
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Request password reset
+// @access  Public
+router.post('/forgot-password', authLimiter, sanitizeInput, async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ 
+        error: 'Email is required' 
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.json({ 
+        message: 'If an account with that email exists, a password reset link has been sent.' 
+      });
+    }
+
+    // Generate reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // In a real application, you would send an email here
+    // For now, we'll just log it (remove in production)
+    console.log(`Password reset token for ${email}: ${resetToken}`);
+
+    res.json({ 
+      message: 'If an account with that email exists, a password reset link has been sent.',
+      // Remove this in production - only for development
+      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+    });
+
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error' 
+    });
+  }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password with token
+// @access  Public
+router.post('/reset-password', authLimiter, async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).json({ 
+        error: 'Token, password, and confirm password are required' 
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ 
+        error: 'Passwords do not match' 
+      });
+    }
+
+    // Hash the token to compare with stored hash
+    const crypto = require('crypto');
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        error: 'Invalid or expired reset token' 
+      });
+    }
+
+    // Update password
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.loginAttempts = undefined;
+    user.lockUntil = undefined;
+
+    await user.save();
+
+    res.json({ 
+      message: 'Password reset successful' 
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error' 
+    });
   }
 });
 

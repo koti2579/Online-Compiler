@@ -1,8 +1,11 @@
 const express = require('express');
 const CodeFile = require('../models/CodeFile');
-const auth = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Use auth middleware alias for consistency with existing code
+const auth = authenticateToken;
 
 // Save code file
 router.post('/save', auth, async (req, res) => {
@@ -14,9 +17,18 @@ router.post('/save', auth, async (req, res) => {
       return res.status(400).json({ error: 'Filename, code, and language are required' });
     }
 
+    // Additional validation
+    if (!filename.trim()) {
+      return res.status(400).json({ error: 'Filename cannot be empty' });
+    }
+
+    if (!code.trim()) {
+      return res.status(400).json({ error: 'Code cannot be empty' });
+    }
+
     // Check if file already exists for this user
     const existingFile = await CodeFile.findOne({
-      userId: req.userId,
+      userId: req.user._id,
       filename
     });
 
@@ -34,7 +46,7 @@ router.post('/save', auth, async (req, res) => {
     } else {
       // Create new file
       const codeFile = new CodeFile({
-        userId: req.userId,
+        userId: req.user._id,
         filename,
         code,
         language
@@ -49,42 +61,38 @@ router.post('/save', auth, async (req, res) => {
     }
   } catch (error) {
     console.error('Save file error:', error);
-    res.status(500).json({ error: 'Failed to save file' });
+    res.status(500).json({ 
+      error: 'Failed to save file, check database connection.',
+      details: error.message 
+    });
   }
 });
 
-// Get user's files
+// Get all files for a user
 router.get('/', auth, async (req, res) => {
   try {
-    const files = await CodeFile.find({ userId: req.userId })
-      .select('filename language createdAt updatedAt')
-      .sort({ updatedAt: -1 });
-
-    res.json({ files });
+    const files = await CodeFile.find({ userId: req.user._id }).select('-code');
+    
+    res.json(files);
   } catch (error) {
-    console.error('Get files error:', error);
-    res.status(500).json({ error: 'Failed to retrieve files' });
+    console.error('Error fetching files:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Get specific file
-router.get('/:filename', auth, async (req, res) => {
+// Get a specific file
+router.get('/:id', auth, async (req, res) => {
   try {
-    const { filename } = req.params;
-
-    const file = await CodeFile.findOne({
-      userId: req.userId,
-      filename
-    });
-
-    if (!file) {
+    const file = await CodeFile.findById(req.params.id);
+    
+    if (!file || file.userId.toString() !== req.user._id.toString()) {
       return res.status(404).json({ error: 'File not found' });
     }
-
-    res.json({ file });
+    
+    res.json(file);
   } catch (error) {
-    console.error('Get file error:', error);
-    res.status(500).json({ error: 'Failed to retrieve file' });
+    console.error('Error fetching file:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -94,7 +102,7 @@ router.delete('/:filename', auth, async (req, res) => {
     const { filename } = req.params;
 
     const file = await CodeFile.findOneAndDelete({
-      userId: req.userId,
+      userId: req.user._id,
       filename
     });
 

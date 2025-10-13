@@ -36,9 +36,11 @@ const FileManager: React.FC<FileManagerProps> = ({
     try {
       setLoading(true);
       const response = await axios.get('/files');
-      setFiles(response.data.files);
+      const incoming = response.data;
+      setFiles(Array.isArray(incoming) ? incoming : []);
     } catch (error) {
       console.error('Failed to fetch files:', error);
+      setFiles([]);
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,10 @@ const FileManager: React.FC<FileManagerProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return '-';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -157,13 +162,13 @@ const FileManager: React.FC<FileManagerProps> = ({
       <div className="file-list">
         {loading ? (
           <div className="loading-files">Loading files...</div>
-        ) : files.length === 0 ? (
+          ) : (!Array.isArray(files) || files.length === 0) ? (
           <div className="no-files">
             <p>No files found</p>
             <p>Create your first file by clicking the save button</p>
           </div>
         ) : (
-          files.map((file) => (
+            Array.isArray(files) && files.map((file) => (
             <div
               key={file._id}
               className={`file-item ${currentFile === file.filename ? 'active' : ''}`}
@@ -179,8 +184,8 @@ const FileManager: React.FC<FileManagerProps> = ({
                   <span className="filename">{file.filename}</span>
                 </div>
                 <div className="file-meta">
-                  <span className="language">{file.language}</span>
-                  <span className="date">{formatDate(file.updatedAt)}</span>
+                  <span className="language">{file.language || '-'}</span>
+                  <span className="date">{formatDate(file.updatedAt || file.createdAt || '')}</span>
                 </div>
               </div>
               <button

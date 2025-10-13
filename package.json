@@ -9,10 +9,19 @@
     "client": "cd frontend && npm start",
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
-  "keywords": ["code-editor", "compiler", "react", "nodejs", "express"],
+  "keywords": [
+    "code-editor",
+    "compiler",
+    "react",
+    "nodejs",
+    "express"
+  ],
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^7.6.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
   }
 }

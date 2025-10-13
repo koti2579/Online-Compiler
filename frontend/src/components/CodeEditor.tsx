@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import Editor from '@monaco-editor/react';
 import LanguageSelector from './LanguageSelector';
 import OutputDisplay from './OutputDisplay';
 import FileManager from './FileManager';
 import { useAuth } from '../contexts/AuthContext';
+
 import axios from 'axios';
 import './CodeEditor.css';
 
@@ -16,6 +17,7 @@ interface ExecutionResult {
 
 const CodeEditor: React.FC = () => {
   const { user, logout } = useAuth();
+  
   const [code, setCode] = useState('// Welcome to the Online Code Editor\nconsole.log("Hello, World!");');
   const [language, setLanguage] = useState('javascript');
   const [output, setOutput] = useState<ExecutionResult | null>(null);

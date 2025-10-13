@@ -1,11 +1,9 @@
 const express = require('express');
-const { executeCode } = require('../services/codeExecutor');
-const auth = require('../middleware/auth');
-
 const router = express.Router();
+const codeExecutor = require('../services/codeExecutor');
 
 // Execute code
-router.post('/execute', auth, async (req, res) => {
+router.post('/execute', async (req, res) => {
   try {
     const { code, language, input = '' } = req.body;
 
@@ -14,6 +12,15 @@ router.post('/execute', auth, async (req, res) => {
       return res.status(400).json({ error: 'Code and language are required' });
     }
 
+    // Additional validation for code
+    if (typeof code !== 'string') {
+      return res.status(400).json({ error: 'Code must be a string' });
+    }
+
+    if (!code.trim()) {
+      return res.status(400).json({ error: 'Code cannot be empty' });
+    }
+    
     // Supported languages
     const supportedLanguages = ['javascript', 'python', 'java', 'cpp', 'c', 'php'];
     if (!supportedLanguages.includes(language.toLowerCase())) {
@@ -29,7 +36,7 @@ router.post('/execute', auth, async (req, res) => {
     }
 
     // Execute code
-    const result = await executeCode(code, language.toLowerCase(), input);
+    const result = await codeExecutor.executeCode(code, language.toLowerCase(), input);
 
     res.json({
       success: true,
