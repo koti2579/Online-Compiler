@@ -2,7 +2,7 @@ Online Compiler
 
 Overview
 - Full-stack web app to write, save, and run code online.
-- Frontend built with React + TypeScript; Backend with Node.js + Express + MongoDB.
+- Frontend built with React; Backend with Node.js + Express + MongoDB.
 - Authenticated users can create, edit, and persist code files; execution results are displayed in the UI.
 
 Tech Stack
@@ -34,15 +34,15 @@ Online-Compiler/
 │   ├── temp/                    # Temp workspace for code execution
 │   └── uploads/                 # File uploads if any
 ├── frontend/
+│   ├── .env                     # Frontend environment variables
 │   ├── .gitignore
 │   ├── README.md
 │   ├── package.json
 │   ├── package-lock.json
 │   ├── public/
-│   │   ├── favicon.ico
+│   │   ├── docs.html            # Printable project documentation
 │   │   ├── index.html
-│   │   ├── logo192.png
-│   │   ├── logo512.png
+│   │   ├── logo.png             # Application logo
 │   │   ├── manifest.json
 │   │   └── robots.txt
 │   ├── src/
@@ -52,17 +52,20 @@ Online-Compiler/
 │   │   ├── components/
 │   │   │   ├── Auth.css
 │   │   │   ├── CodeEditor.css
-│   │   │   ├── CodeEditor.tsx
+│   │   │   ├── CodeEditor.tsx   # Main code editor component
 │   │   │   ├── FileManager.css
-│   │   │   ├── FileManager.tsx
+│   │   │   ├── FileManager.tsx  # File management interface
 │   │   │   ├── LanguageSelector.css
-│   │   │   ├── LanguageSelector.tsx
-│   │   │   ├── Login.tsx
+│   │   │   ├── LanguageSelector.tsx # Programming language selector
+│   │   │   ├── Login.tsx        # User login component
 │   │   │   ├── OutputDisplay.css
-│   │   │   ├── OutputDisplay.tsx
-│   │   │   └── Register.tsx
+│   │   │   ├── OutputDisplay.tsx # Code execution output display
+│   │   │   ├── Signup.tsx       # User registration component
+│   │   │   ├── Toast.css        # Toast notification styles
+│   │   │   ├── Toast.tsx        # Individual toast message component
+│   │   │   └── ToastContainer.tsx # Toast notification system
 │   │   ├── contexts/
-│   │   │   └── AuthContext.tsx
+│   │   │   └── AuthContext.tsx  # Authentication context provider
 │   │   ├── index.css
 │   │   ├── index.tsx
 │   │   ├── logo.svg
@@ -70,6 +73,7 @@ Online-Compiler/
 │   │   ├── reportWebVitals.ts
 │   │   └── setupTests.ts
 │   └── tsconfig.json
+├── package-lock.json
 └── package.json                  # Root optional scripts
 ```
 
