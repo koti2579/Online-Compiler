@@ -21,20 +21,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// @route   GET /api/auth/me
-// @desc    Get current authenticated user
-// @access  Private
-router.get('/me', authenticateToken, async (req, res) => {
-  try {
-    // req.user is set by authenticateToken and excludes password
-    const safeUser = req.user?.toJSON ? req.user.toJSON() : req.user;
-    return res.json({ user: safeUser });
-  } catch (error) {
-    console.error('Fetch current user error:', error);
-    return res.status(500).json({ error: 'Failed to fetch current user' });
-  }
-});
-
 // Stricter rate limiting for login attempts
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -306,7 +292,14 @@ router.post('/logout', authenticateToken, (req, res) => {
   });
 });
 
-// Removed duplicate /me route; consolidated above with sanitized user output
+// @route   GET /api/auth/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', authenticateToken, (req, res) => {
+  res.json({
+    user: req.user
+  });
+});
 
 // @route   POST /api/auth/forgot-password
 // @desc    Request password reset

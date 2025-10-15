@@ -100,9 +100,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Try to refresh token
           const refreshSuccess = await refreshToken();
           if (refreshSuccess) {
-            // Retry the original request with new token
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return axios(originalRequest);
+            // Get the current token from localStorage since state might not be updated yet
+            const currentToken = localStorage.getItem('token');
+            if (currentToken) {
+              originalRequest.headers.Authorization = `Bearer ${currentToken}`;
+              return axios(originalRequest);
+            }
           } else {
             // Refresh failed, logout user
             logout();
