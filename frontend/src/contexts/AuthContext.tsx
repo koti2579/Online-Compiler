@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import axios from 'axios';
 
 // Configure axios defaults
@@ -40,6 +40,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const isAuthenticated = !!user && !!token;
+
+  // Logout helper (stable reference)
+  const logout = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    setRefreshTokenValue(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('rememberMe');
+  }, []);
+
+  // Refresh token helpers (stable references)
+  const refreshTokenWithValue = useCallback(async (rtValue: string): Promise<boolean> => {
+    try {
+      const response = await axios.post('/auth/refresh', {
+        refreshToken: rtValue
+      });
+
+      const { token: newToken } = response.data;
+      setToken(newToken);
+      localStorage.setItem('token', newToken);
+
+      return true;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return false;
+    }
+  }, []);
+
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    if (!refreshTokenValue) return false;
+    return refreshTokenWithValue(refreshTokenValue);
+  }, [refreshTokenValue, refreshTokenWithValue]);
 
   // Set up axios interceptor for authentication
   useEffect(() => {
@@ -83,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       axios.interceptors.request.eject(requestInterceptor);
       axios.interceptors.response.eject(responseInterceptor);
     };
-  },[token]);
+  }, [token, refreshToken, logout]);
 
   // Load user data from localStorage on app start (only if remember me was used)
   useEffect(() => {
@@ -130,7 +164,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     loadUserData();
-  }, []);
+  }, [refreshTokenWithValue, logout]);
 
     // Helper to normalize API error messages and handle rate limits
     const getErrorMessage = (error: any, fallback = 'An unexpected error occurred.') => {
@@ -213,37 +247,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    setRefreshTokenValue(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('rememberMe');
-  };
-
-  const refreshTokenWithValue = async (refreshTokenValue: string): Promise<boolean> => {
-    try {
-      const response = await axios.post('/auth/refresh', {
-        refreshToken: refreshTokenValue
-      });
-
-      const { token: newToken } = response.data;
-      setToken(newToken);
-      localStorage.setItem('token', newToken);
-
-      return true;
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      return false;
-    }
-  };
-
-  const refreshToken = async (): Promise<boolean> => {
-    if (!refreshTokenValue) return false;
-    return refreshTokenWithValue(refreshTokenValue);
-  };
+  // Above we provided stable versions of logout, refreshTokenWithValue, and refreshToken
 
   const forgotPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {

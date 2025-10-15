@@ -39,11 +39,8 @@ const codeLimiter = rateLimit({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/code-editor', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+// MongoDB connection (Mongoose 8+ defaults suffice; remove deprecated driver options)
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/code-editor')
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 

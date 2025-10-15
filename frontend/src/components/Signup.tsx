@@ -233,7 +233,14 @@ const Signup: React.FC = () => {
                 autoComplete="new-password"
                 disabled={isSubmitting}
               />
-              
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isSubmitting}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
             </div>
             {formData.password && (
               <div className="password-strength">
@@ -275,7 +282,14 @@ const Signup: React.FC = () => {
                 autoComplete="new-password"
                 disabled={isSubmitting}
               />
-              
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={isSubmitting}
+              >
+                {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
             </div>
             {errors.confirmPassword && (
               <span className="error-message">{errors.confirmPassword}</span>

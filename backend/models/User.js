@@ -74,9 +74,8 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for performance
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+// Unique indexes are created via the schema definitions above.
+// Avoid declaring duplicate indexes to prevent Mongoose warnings.
 
 // Virtual for account lock status
 userSchema.virtual('isLocked').get(function() {

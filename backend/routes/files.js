@@ -80,16 +80,18 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Get a specific file
-router.get('/:id', auth, async (req, res) => {
+// Get a specific file by filename for the authenticated user
+router.get('/:filename', auth, async (req, res) => {
   try {
-    const file = await CodeFile.findById(req.params.id);
-    
-    if (!file || file.userId.toString() !== req.user._id.toString()) {
+    const { filename } = req.params;
+    const file = await CodeFile.findOne({ userId: req.user._id, filename });
+
+    if (!file) {
       return res.status(404).json({ error: 'File not found' });
     }
-    
-    res.json(file);
+
+    // Return shape consistent with frontend expectations
+    res.json({ file });
   } catch (error) {
     console.error('Error fetching file:', error);
     res.status(500).json({ error: 'Server error' });
