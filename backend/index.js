@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const path = require('path');
+const { getBinaryStatuses } = require('./services/codeExecutor');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -56,6 +57,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Compiler/binary availability endpoint
+app.get('/api/health/binaries', async (req, res) => {
+  try {
+    const statuses = await getBinaryStatuses();
+    res.json({ binaries: statuses });
+  } catch (e) {
+    res.status(500).json({ error: 'Binary check failed', message: e.message });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -73,4 +84,13 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Log compiler availability at startup for visibility
+  getBinaryStatuses()
+    .then((statuses) => {
+      console.log('Compiler availability:', statuses);
+    })
+    .catch((e) => {
+      console.warn('Failed to check compiler availability:', e.message);
+    });
 });

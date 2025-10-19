@@ -166,6 +166,60 @@ const executePython = async (code, input, sessionDir) => {
   });
 };
 
+// Binary path resolution to support non-standard installs and env overrides
+const resolveBinary = (name) => {
+  if (name === 'javac') {
+    const fromEnv = process.env.JAVAC_PATH;
+    const javaHome = process.env.JAVA_HOME;
+    return fromEnv || (javaHome ? path.join(javaHome, 'bin', 'javac') : 'javac');
+  }
+  if (name === 'java') {
+    const fromEnv = process.env.JAVA_PATH;
+    const javaHome = process.env.JAVA_HOME;
+    return fromEnv || (javaHome ? path.join(javaHome, 'bin', 'java') : 'java');
+  }
+  if (name === 'php') {
+    return process.env.PHP_PATH || 'php';
+  }
+  if (name === 'gcc') {
+    return process.env.GCC_PATH || 'gcc';
+  }
+  if (name === 'g++') {
+    return process.env.GPP_PATH || process.env.GXX_PATH || 'g++';
+  }
+  return name;
+};
+
+// Verify a binary exists by attempting to read version
+const checkBinary = (name) => {
+  return new Promise((resolve) => {
+    const bin = resolveBinary(name);
+    const args = (name === 'java' || name === 'javac') ? ['-version'] : ['--version'];
+    let out = '';
+    let err = '';
+    const proc = spawn(bin, args);
+
+    proc.stdout.on('data', (d) => { out += d.toString(); });
+    proc.stderr.on('data', (d) => { err += d.toString(); });
+
+    proc.on('error', (e) => {
+      resolve({ name, path: bin, available: false, version: '', error: e.message });
+    });
+
+    proc.on('close', (code) => {
+      const text = (out || err).trim();
+      resolve({ name, path: bin, available: code === 0, version: text, error: code === 0 ? '' : err.trim() });
+    });
+  });
+};
+
+// Expose statuses for health checks
+const getBinaryStatuses = async () => {
+  const targets = ['java', 'javac', 'php'];
+  const results = await Promise.all(targets.map(checkBinary));
+  return results;
+};
+
 const executeJava = async (code, input, sessionDir) => {
   // Extract public class name if present; default to Main
   const classMatch = code.match(/public\s+class\s+(\w+)/);
@@ -176,7 +230,7 @@ const executeJava = async (code, input, sessionDir) => {
 
   return new Promise((resolve) => {
     // Compile Java
-    const compileProcess = spawn('javac', [filename], {
+    const compileProcess = spawn(resolveBinary('javac'), [filename], {
       cwd: sessionDir,
       timeout: EXECUTION_TIMEOUT
     });
@@ -209,7 +263,7 @@ const executeJava = async (code, input, sessionDir) => {
       }
 
       // Run Java program with classpath set to session dir
-      const runProcess = spawn('java', ['-cp', sessionDir, className], {
+      const runProcess = spawn(resolveBinary('java'), ['-cp', sessionDir, className], {
         cwd: sessionDir,
         timeout: EXECUTION_TIMEOUT
       });
@@ -251,6 +305,7 @@ const executeJava = async (code, input, sessionDir) => {
   });
 };
 
+// Use resolved binary for C++ compilation
 const executeCpp = async (code, input, sessionDir) => {
   const sourceFile = path.join(sessionDir, 'program.cpp');
   const executableFile = path.join(sessionDir, 'program.exe');
@@ -259,7 +314,7 @@ const executeCpp = async (code, input, sessionDir) => {
   
   return new Promise((resolve) => {
     // Compile first
-    const compileProcess = spawn('g++', [sourceFile, '-o', executableFile], {
+    const compileProcess = spawn(resolveBinary('g++'), [sourceFile, '-o', executableFile], {
       cwd: sessionDir,
       timeout: EXECUTION_TIMEOUT
     });
@@ -342,7 +397,7 @@ const executeC = async (code, input, sessionDir) => {
   
   return new Promise((resolve) => {
     // Compile first
-    const compileProcess = spawn('gcc', [sourceFile, '-o', executableFile], {
+    const compileProcess = spawn(resolveBinary('gcc'), [sourceFile, '-o', executableFile], {
       cwd: sessionDir,
       timeout: EXECUTION_TIMEOUT
     });
@@ -426,7 +481,7 @@ const executePhp = async (code, input, sessionDir) => {
   await fs.writeFile(filename, phpCode);
   
   return new Promise((resolve) => {
-    const process = spawn('php', [filename], {
+    const process = spawn(resolveBinary('php'), [filename], {
       cwd: sessionDir,
       timeout: EXECUTION_TIMEOUT
     });
@@ -467,4 +522,4 @@ const executePhp = async (code, input, sessionDir) => {
   });
 };
 
-module.exports = { executeCode };
+module.exports = { executeCode, getBinaryStatuses };
