@@ -11,6 +11,8 @@ const codeRoutes = require('./routes/code');
 const fileRoutes = require('./routes/files');
 
 const app = express();
+// Trust the first proxy (Render/other reverse proxies)
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // Security middleware

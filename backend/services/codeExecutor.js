@@ -167,15 +167,15 @@ const executePython = async (code, input, sessionDir) => {
 };
 
 const executeJava = async (code, input, sessionDir) => {
-  // Extract class name from code
+  // Extract public class name if present; default to Main
   const classMatch = code.match(/public\s+class\s+(\w+)/);
   const className = classMatch ? classMatch[1] : 'Main';
-  
   const filename = path.join(sessionDir, `${className}.java`);
+
   await fs.writeFile(filename, code);
-  
+
   return new Promise((resolve) => {
-    // Compile first
+    // Compile Java
     const compileProcess = spawn('javac', [filename], {
       cwd: sessionDir,
       timeout: EXECUTION_TIMEOUT
@@ -185,6 +185,16 @@ const executeJava = async (code, input, sessionDir) => {
 
     compileProcess.stderr.on('data', (data) => {
       compileError += data.toString();
+    });
+
+    // Handle missing compiler (ENOENT) or spawn errors gracefully
+    compileProcess.on('error', (err) => {
+      resolve({
+        output: '',
+        error: `Java compiler not available: ${err.message}`,
+        exitCode: 1,
+        executionTime: Date.now()
+      });
     });
 
     compileProcess.on('close', (compileCode) => {
@@ -198,8 +208,8 @@ const executeJava = async (code, input, sessionDir) => {
         return;
       }
 
-      // Execute compiled class
-      const runProcess = spawn('java', [className], {
+      // Run Java program with classpath set to session dir
+      const runProcess = spawn('java', ['-cp', sessionDir, className], {
         cwd: sessionDir,
         timeout: EXECUTION_TIMEOUT
       });
@@ -258,6 +268,16 @@ const executeCpp = async (code, input, sessionDir) => {
 
     compileProcess.stderr.on('data', (data) => {
       compileError += data.toString();
+    });
+
+    // Handle missing compiler or spawn errors
+    compileProcess.on('error', (err) => {
+      resolve({
+        output: '',
+        error: `C++ compiler not available: ${err.message}`,
+        exitCode: 1,
+        executionTime: Date.now()
+      });
     });
 
     compileProcess.on('close', (compileCode) => {
@@ -331,6 +351,16 @@ const executeC = async (code, input, sessionDir) => {
 
     compileProcess.stderr.on('data', (data) => {
       compileError += data.toString();
+    });
+
+    // Handle missing compiler or spawn errors
+    compileProcess.on('error', (err) => {
+      resolve({
+        output: '',
+        error: `C compiler not available: ${err.message}`,
+        exitCode: 1,
+        executionTime: Date.now()
+      });
     });
 
     compileProcess.on('close', (compileCode) => {
