@@ -51,6 +51,32 @@ router.post('/execute', async (req, res) => {
   }
 });
 
+// Self-test: run minimal programs for each supported language
+router.get('/selftest', async (req, res) => {
+  const samples = {
+    javascript: 'console.log("OK")',
+    python: 'print("OK")',
+    php: '<?php echo "OK"; ?>',
+    java: 'public class Main { public static void main(String[] args) { System.out.println("OK"); } }',
+    c: '#include <stdio.h>\nint main(){ printf("OK"); return 0; }',
+    cpp: '#include <iostream>\nint main(){ std::cout << "OK"; return 0; }'
+  };
+
+  const languages = ['javascript', 'python', 'java', 'cpp', 'c', 'php'];
+
+  try {
+    const results = await Promise.all(languages.map(async (lang) => {
+      const result = await codeExecutor.executeCode(samples[lang], lang, '');
+      return { language: lang, result };
+    }));
+
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Selftest error:', error);
+    res.status(500).json({ error: 'Selftest failed', message: error.message });
+  }
+});
+
 // Get supported languages
 router.get('/languages', (req, res) => {
   const languages = [
