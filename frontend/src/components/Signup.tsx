@@ -167,7 +167,7 @@ const Signup: React.FC = () => {
             <img src="/logo.png" alt="Logo" style={{ width: 32, height: 32 }} />
           </div>
           <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join our coding community</p>
+          <p className="auth-subtitle">Portable Coding Platform</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
@@ -316,7 +316,7 @@ const Signup: React.FC = () => {
           <p>
             Already have an account?{' '}
             <Link to="/login" className="auth-link">
-              Sign in here
+              Login
             </Link>
           </p>
         </div>

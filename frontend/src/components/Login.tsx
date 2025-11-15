@@ -146,7 +146,7 @@ const Login: React.FC = () => {
             <img src="/logo.png" alt="Logo" style={{ width: 32, height: 32 }} />
           </div>
           <h1 className="auth-title">Welcome Back</h1>
-          <p className="auth-subtitle">Sign in to your account</p>
+          <p className="auth-subtitle">Login in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
@@ -207,7 +207,7 @@ const Login: React.FC = () => {
                 Signing In...
               </>
             ) : (
-              'Sign In'
+              'Login'
             )}
           </button>
         </form>
