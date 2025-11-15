@@ -18,10 +18,36 @@ const PORT = process.env.PORT || 5000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://online-compiler-mauve.vercel.app',
-  credentials: true
-}));
+
+// Robust CORS configuration with whitelist and preflight support
+const defaultFrontend = process.env.FRONTEND_URL || 'https://online-compiler-mauve.vercel.app';
+const allowedOrigins = new Set([
+  defaultFrontend,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+]);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (no origin)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error(`CORS: Origin ${origin} not allowed`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+// Express 5: let cors middleware handle OPTIONS; provide graceful fallback
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Rate limiting
 const limiter = rateLimit({

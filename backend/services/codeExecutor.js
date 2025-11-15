@@ -512,9 +512,13 @@ const executePhp = async (code, input, sessionDir) => {
     });
 
     process.on('error', (err) => {
+      // Provide clearer messaging when PHP runtime is missing
+      const msg = err.code === 'ENOENT'
+        ? `PHP runtime not available: ${err.message}`
+        : err.message;
       resolve({
         output: '',
-        error: err.message,
+        error: msg,
         exitCode: 1,
         executionTime: Date.now()
       });
