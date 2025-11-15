@@ -11,9 +11,11 @@ interface ExecutionResult {
 interface OutputDisplayProps {
   result: ExecutionResult | null;
   loading: boolean;
+  outputRef?: React.RefObject<HTMLDivElement | null>;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
 }
 
-const OutputDisplay: React.FC<OutputDisplayProps> = ({ result, loading }) => {
+const OutputDisplay: React.FC<OutputDisplayProps> = ({ result, loading, outputRef, onKeyDown }) => {
   const formatExecutionTime = (time: number) => {
     if (time < 1000) {
       return `${time}ms`;
@@ -35,7 +37,14 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ result, loading }) => {
         <div className="section-header">
           <h3>Output</h3>
         </div>
-        <div className="output-content loading">
+        <div 
+          className="output-content loading"
+          ref={outputRef}
+          tabIndex={0}
+          role="region"
+          aria-label="Code execution in progress"
+          aria-live="polite"
+        >
           <div className="loading-spinner"></div>
           <span>Executing code...</span>
         </div>
@@ -49,7 +58,13 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ result, loading }) => {
         <div className="section-header">
           <h3>Output</h3>
         </div>
-        <div className="output-content empty">
+        <div 
+          className="output-content empty"
+          ref={outputRef}
+          tabIndex={0}
+          role="region"
+          aria-label="Output area, empty"
+        >
           <span>Click "Run Code" to see the output</span>
         </div>
       </div>
@@ -61,7 +76,10 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ result, loading }) => {
       <div className="section-header">
         <h3>Output</h3>
         <div className="execution-info">
-          <span className={`status ${result.exitCode === 0 ? 'success' : 'error'}`}>
+          <span 
+            className={`status ${result.exitCode === 0 ? 'success' : 'error'}`}
+            aria-live="polite"
+          >
             {getStatusIcon(result.exitCode)} {getStatusText(result.exitCode)}
           </span>
           <span className="execution-time">
@@ -70,7 +88,14 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ result, loading }) => {
         </div>
       </div>
       
-      <div className="output-content">
+      <div 
+        className="output-content"
+        ref={outputRef}
+        tabIndex={0}
+        role="region"
+        aria-label="Code execution result"
+        onKeyDown={onKeyDown}
+      >
         {result.output && (
           <div className="output-section">
             <h4>Output:</h4>
