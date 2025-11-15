@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -115,6 +116,13 @@ app.listen(PORT, () => {
   getBinaryStatuses()
     .then((statuses) => {
       console.log('Compiler availability:', statuses);
+      const unavailable = statuses.filter(s => !s.available);
+      if (unavailable.length) {
+        console.warn('Some required runtimes are unavailable:');
+        unavailable.forEach(s => {
+          console.warn(`- ${s.name} at '${s.path}' unavailable: ${s.error || 'not found'}${s.hint ? `; hint: ${s.hint}` : ''}`);
+        });
+      }
     })
     .catch((e) => {
       console.warn('Failed to check compiler availability:', e.message);

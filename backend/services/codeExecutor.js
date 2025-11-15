@@ -166,31 +166,51 @@ const executePython = async (code, input, sessionDir) => {
   });
 };
 
+// Helper: ensure .exe suffix on Windows when using absolute paths
+const ensureWinExe = (candidate) => {
+  if (process.platform !== 'win32') return candidate;
+  try {
+    // If path has no extension, try appending .exe if it exists
+    if (!path.extname(candidate)) {
+      const exeCandidate = `${candidate}.exe`;
+      if (fs.pathExistsSync(exeCandidate)) return exeCandidate;
+    }
+  } catch (_) {}
+  return candidate;
+};
+
 // Binary path resolution to support non-standard installs and env overrides
 const resolveBinary = (name) => {
   if (name === 'javac') {
     const fromEnv = process.env.JAVAC_PATH;
     const javaHome = process.env.JAVA_HOME;
-    return fromEnv || (javaHome ? path.join(javaHome, 'bin', 'javac') : 'javac');
+    const direct = fromEnv ? ensureWinExe(fromEnv) : null;
+    const fromHome = javaHome ? ensureWinExe(path.join(javaHome, 'bin', 'javac')) : null;
+    return direct || fromHome || 'javac';
   }
   if (name === 'java') {
     const fromEnv = process.env.JAVA_PATH;
     const javaHome = process.env.JAVA_HOME;
-    return fromEnv || (javaHome ? path.join(javaHome, 'bin', 'java') : 'java');
+    const direct = fromEnv ? ensureWinExe(fromEnv) : null;
+    const fromHome = javaHome ? ensureWinExe(path.join(javaHome, 'bin', 'java')) : null;
+    return direct || fromHome || 'java';
   }
   if (name === 'php') {
-    return process.env.PHP_PATH || 'php';
+    const fromEnv = process.env.PHP_PATH;
+    return fromEnv ? ensureWinExe(fromEnv) : 'php';
   }
   if (name === 'gcc') {
-    return process.env.GCC_PATH || 'gcc';
+    const fromEnv = process.env.GCC_PATH;
+    return fromEnv ? ensureWinExe(fromEnv) : 'gcc';
   }
   if (name === 'g++') {
-    return process.env.GPP_PATH || process.env.GXX_PATH || 'g++';
+    const fromEnv = process.env.GPP_PATH || process.env.GXX_PATH;
+    return fromEnv ? ensureWinExe(fromEnv) : 'g++';
   }
   return name;
 };
 
-// Verify a binary exists by attempting to read version
+// Verify a binary exists by attempting to read version and provide diagnostic hint
 const checkBinary = (name) => {
   return new Promise((resolve) => {
     const bin = resolveBinary(name);
@@ -202,13 +222,23 @@ const checkBinary = (name) => {
     proc.stdout.on('data', (d) => { out += d.toString(); });
     proc.stderr.on('data', (d) => { err += d.toString(); });
 
+    const hintFor = (tool) => {
+      if (tool === 'java' || tool === 'javac') {
+        return 'Install JDK and set JAVA_HOME or provide JAVA_PATH/JAVAC_PATH in .env';
+      }
+      if (tool === 'php') {
+        return 'Install PHP CLI and set PHP_PATH in .env';
+      }
+      return 'Ensure the tool is installed and on PATH';
+    };
+
     proc.on('error', (e) => {
-      resolve({ name, path: bin, available: false, version: '', error: e.message });
+      resolve({ name, path: bin, available: false, version: '', error: e.message, hint: hintFor(name) });
     });
 
     proc.on('close', (code) => {
       const text = (out || err).trim();
-      resolve({ name, path: bin, available: code === 0, version: text, error: code === 0 ? '' : err.trim() });
+      resolve({ name, path: bin, available: code === 0, version: text, error: code === 0 ? '' : err.trim(), hint: code === 0 ? '' : hintFor(name) });
     });
   });
 };
