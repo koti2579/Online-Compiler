@@ -22,7 +22,7 @@ router.post('/execute', async (req, res) => {
     }
     
     // Supported languages
-    const supportedLanguages = ['javascript', 'python', 'java', 'cpp', 'c', 'php'];
+    const supportedLanguages = ['javascript', 'python', 'cpp', 'c', 'php'];
     if (!supportedLanguages.includes(language.toLowerCase())) {
       return res.status(400).json({ 
         error: 'Unsupported language',
@@ -57,12 +57,11 @@ router.get('/selftest', async (req, res) => {
     javascript: 'console.log("OK")',
     python: 'print("OK")',
     php: '<?php echo "OK"; ?>',
-    java: 'public class Main { public static void main(String[] args) { System.out.println("OK"); } }',
     c: '#include <stdio.h>\nint main(){ printf("OK"); return 0; }',
     cpp: '#include <iostream>\nint main(){ std::cout << "OK"; return 0; }'
   };
 
-  const languages = ['javascript', 'python', 'java', 'cpp', 'c', 'php'];
+  const languages = ['javascript', 'python', 'cpp', 'c', 'php'];
 
   try {
     const results = await Promise.all(languages.map(async (lang) => {
@@ -91,12 +90,6 @@ router.get('/languages', (req, res) => {
       name: 'Python',
       version: '3.x',
       extension: '.py'
-    },
-    {
-      id: 'java',
-      name: 'Java',
-      version: 'JDK 11+',
-      extension: '.java'
     },
     {
       id: 'cpp',

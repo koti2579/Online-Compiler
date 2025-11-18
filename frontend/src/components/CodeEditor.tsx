@@ -33,7 +33,6 @@ const CodeEditor: React.FC = () => {
   const languageTemplates: Record<string, string> = {
     javascript: '// JavaScript\nconsole.log("Hello, World!");',
     python: '# Python\nprint("Hello, World!")',
-    java: 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
     cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
     c: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}'
   };
@@ -114,14 +113,16 @@ const CodeEditor: React.FC = () => {
     if (lang === 'php' || ext.endsWith('.php') || ext.endsWith('.phtml')) {
       return 'plaintext';
     }
+    if (lang === 'java' || ext.endsWith('.java')) {
+      return 'plaintext';
+    }
     return lang;
   };
 
   const handleLanguageChange = (newLanguage: string) => {
-    const effective = toEditorLanguage(newLanguage, currentFile);
-    setLanguage(effective);
+    setLanguage(newLanguage);
     if (!currentFile) {
-      setCode(languageTemplates[effective] || '');
+      setCode(languageTemplates[newLanguage] || '');
     }
   };
 
@@ -177,7 +178,7 @@ const CodeEditor: React.FC = () => {
       const response = await axios.get(`/files/${filename}`);
       const file = response.data.file;
       setCode(file.code);
-      setLanguage(toEditorLanguage(file.language, filename));
+      setLanguage(file.language);
       setCurrentFile(filename);
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to load file');

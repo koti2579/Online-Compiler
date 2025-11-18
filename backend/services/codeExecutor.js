@@ -29,9 +29,6 @@ const executeCode = async (code, language, input = '') => {
       case 'python':
         result = await executePython(code, input, sessionDir);
         break;
-      case 'java':
-        result = await executeJava(code, input, sessionDir);
-        break;
       case 'cpp':
         result = await executeCpp(code, input, sessionDir);
         break;
@@ -181,20 +178,6 @@ const ensureWinExe = (candidate) => {
 
 // Binary path resolution to support non-standard installs and env overrides
 const resolveBinary = (name) => {
-  if (name === 'javac') {
-    const fromEnv = process.env.JAVAC_PATH;
-    const javaHome = process.env.JAVA_HOME;
-    const direct = fromEnv ? ensureWinExe(fromEnv) : null;
-    const fromHome = javaHome ? ensureWinExe(path.join(javaHome, 'bin', 'javac')) : null;
-    return direct || fromHome || 'javac';
-  }
-  if (name === 'java') {
-    const fromEnv = process.env.JAVA_PATH;
-    const javaHome = process.env.JAVA_HOME;
-    const direct = fromEnv ? ensureWinExe(fromEnv) : null;
-    const fromHome = javaHome ? ensureWinExe(path.join(javaHome, 'bin', 'java')) : null;
-    return direct || fromHome || 'java';
-  }
   if (name === 'php') {
     const fromEnv = process.env.PHP_PATH;
     return fromEnv ? ensureWinExe(fromEnv) : 'php';
@@ -214,7 +197,7 @@ const resolveBinary = (name) => {
 const checkBinary = (name) => {
   return new Promise((resolve) => {
     const bin = resolveBinary(name);
-    const args = (name === 'java' || name === 'javac') ? ['-version'] : ['--version'];
+    const args = ['--version'];
     let out = '';
     let err = '';
     const proc = spawn(bin, args);
@@ -223,9 +206,6 @@ const checkBinary = (name) => {
     proc.stderr.on('data', (d) => { err += d.toString(); });
 
     const hintFor = (tool) => {
-      if (tool === 'java' || tool === 'javac') {
-        return 'Install JDK and set JAVA_HOME or provide JAVA_PATH/JAVAC_PATH in .env';
-      }
       if (tool === 'php') {
         return 'Install PHP CLI and set PHP_PATH in .env';
       }
@@ -245,95 +225,11 @@ const checkBinary = (name) => {
 
 // Expose statuses for health checks
 const getBinaryStatuses = async () => {
-  const targets = ['java', 'javac', 'php'];
+  const targets = ['php'];
   const results = await Promise.all(targets.map(checkBinary));
   return results;
 };
 
-const executeJava = async (code, input, sessionDir) => {
-  // Extract public class name if present; default to Main
-  const classMatch = code.match(/public\s+class\s+(\w+)/);
-  const className = classMatch ? classMatch[1] : 'Main';
-  const filename = path.join(sessionDir, `${className}.java`);
-
-  await fs.writeFile(filename, code);
-
-  return new Promise((resolve) => {
-    // Compile Java
-    const compileProcess = spawn(resolveBinary('javac'), [filename], {
-      cwd: sessionDir,
-      timeout: EXECUTION_TIMEOUT
-    });
-
-    let compileError = '';
-
-    compileProcess.stderr.on('data', (data) => {
-      compileError += data.toString();
-    });
-
-    // Handle missing compiler (ENOENT) or spawn errors gracefully
-    compileProcess.on('error', (err) => {
-      resolve({
-        output: '',
-        error: `Java compiler not available: ${err.message}`,
-        exitCode: 1,
-        executionTime: Date.now()
-      });
-    });
-
-    compileProcess.on('close', (compileCode) => {
-      if (compileCode !== 0) {
-        resolve({
-          output: '',
-          error: `Compilation failed: ${compileError}`,
-          exitCode: compileCode,
-          executionTime: Date.now()
-        });
-        return;
-      }
-
-      // Run Java program with classpath set to session dir
-      const runProcess = spawn(resolveBinary('java'), ['-cp', sessionDir, className], {
-        cwd: sessionDir,
-        timeout: EXECUTION_TIMEOUT
-      });
-
-      let output = '';
-      let error = '';
-
-      if (input) {
-        runProcess.stdin.write(input);
-        runProcess.stdin.end();
-      }
-
-      runProcess.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      runProcess.stderr.on('data', (data) => {
-        error += data.toString();
-      });
-
-      runProcess.on('close', (code) => {
-        resolve({
-          output: output.trim(),
-          error: error.trim(),
-          exitCode: code,
-          executionTime: Date.now()
-        });
-      });
-
-      runProcess.on('error', (err) => {
-        resolve({
-          output: '',
-          error: err.message,
-          exitCode: 1,
-          executionTime: Date.now()
-        });
-      });
-    });
-  });
-};
 
 // Use resolved binary for C++ compilation
 const executeCpp = async (code, input, sessionDir) => {

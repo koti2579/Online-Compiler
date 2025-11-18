@@ -95,7 +95,6 @@ const FileManager: React.FC<FileManagerProps> = ({
     const icons: Record<string, string> = {
       javascript: '🟨',
       python: '🐍',
-      java: '☕',
       cpp: '⚡',
       c: '🔧'
     };

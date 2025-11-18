@@ -19,7 +19,6 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const languages: Language[] = [
     { id: 'javascript', name: 'JavaScript', extension: '.js' },
     { id: 'python', name: 'Python', extension: '.py' },
-    { id: 'java', name: 'Java', extension: '.java' },
     { id: 'cpp', name: 'C++', extension: '.cpp' },
     { id: 'c', name: 'C', extension: '.c' }
   ];
