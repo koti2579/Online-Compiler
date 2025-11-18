@@ -174,7 +174,7 @@
         </ul>
         <h3>Success Criteria</h3>
         <ul>
-          <li>Multi‑language support: JavaScript, Python, Java, C/C++, PHP</li>
+          <li>Multi‑language support: JavaScript, Python, Java, C/C++</li>
           <li>Median run latency under 2 seconds for typical snippets</li>
           <li>JWT‑based auth protecting file operations and code execution</li>
           <li>Users complete “write → run → save” in ≤3 clicks</li>
@@ -242,7 +242,7 @@
         <p>Response contains <code>output</code>, <code>error</code>, <code>exitCode</code>, and <code>executionTime</code>.</p>
         <h3>Validation & Limits</h3>
         <ul>
-          <li>Supported languages: <code>javascript</code>, <code>python</code>, <code>java</code>, <code>cpp</code>, <code>c</code>, <code>php</code></li>
+          <li>Supported languages: <code>javascript</code>, <code>python</code>, <code>java</code>, <code>cpp</code>, <code>c</code></li>
           <li>Code length limit: 50KB</li>
           <li>Rate limiting applied to execution route</li>
         </ul>
@@ -254,7 +254,7 @@
         <pre>userId: ObjectId (ref User)
 filename: String (unique per user, max 100)
 code: String (max 100000)
-language: String (enum: javascript, python, java, cpp, c, php)
+language: String (enum: javascript, python, java, cpp, c)
 timestamps: createdAt, updatedAt
 indexes: (userId, filename) unique; (userId, updatedAt)</pre>
         <h3>User</h3>

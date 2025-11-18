@@ -21,8 +21,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     { id: 'python', name: 'Python', extension: '.py' },
     { id: 'java', name: 'Java', extension: '.java' },
     { id: 'cpp', name: 'C++', extension: '.cpp' },
-    { id: 'c', name: 'C', extension: '.c' },
-    { id: 'php', name: 'PHP', extension: '.php' }
+    { id: 'c', name: 'C', extension: '.c' }
   ];
 
   return (

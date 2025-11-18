@@ -97,8 +97,7 @@ const FileManager: React.FC<FileManagerProps> = ({
       python: '🐍',
       java: '☕',
       cpp: '⚡',
-      c: '🔧',
-      php: '🐘'
+      c: '🔧'
     };
     return icons[language] || '📄';
   };
@@ -184,7 +183,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                   <span className="filename">{file.filename}</span>
                 </div>
                 <div className="file-meta">
-                  <span className="language">{file.language || '-'}</span>
+                  <span className="language">{file.language === 'php' ? 'plaintext' : (file.language || '-')}</span>
                   <span className="date">{formatDate(file.updatedAt || file.createdAt || '')}</span>
                 </div>
               </div>

@@ -35,8 +35,7 @@ const CodeEditor: React.FC = () => {
     python: '# Python\nprint("Hello, World!")',
     java: 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
     cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
-    c: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
-    php: '<?php\necho "Hello, World!\\n";\n?>'
+    c: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}'
   };
 
   // Debounced scroll handler
@@ -110,10 +109,19 @@ const CodeEditor: React.FC = () => {
     };
   }, []);
 
+  const toEditorLanguage = (lang: string, filename?: string | null) => {
+    const ext = (filename || '').toLowerCase();
+    if (lang === 'php' || ext.endsWith('.php') || ext.endsWith('.phtml')) {
+      return 'plaintext';
+    }
+    return lang;
+  };
+
   const handleLanguageChange = (newLanguage: string) => {
-    setLanguage(newLanguage);
+    const effective = toEditorLanguage(newLanguage, currentFile);
+    setLanguage(effective);
     if (!currentFile) {
-      setCode(languageTemplates[newLanguage] || '');
+      setCode(languageTemplates[effective] || '');
     }
   };
 
@@ -169,7 +177,7 @@ const CodeEditor: React.FC = () => {
       const response = await axios.get(`/files/${filename}`);
       const file = response.data.file;
       setCode(file.code);
-      setLanguage(file.language);
+      setLanguage(toEditorLanguage(file.language, filename));
       setCurrentFile(filename);
     } catch (error: any) {
       alert(error.response?.data?.error || 'Failed to load file');
@@ -241,7 +249,7 @@ const CodeEditor: React.FC = () => {
               >
                 <Editor
                   height="100%"
-                  language={language}
+                  language={toEditorLanguage(language, currentFile)}
                   value={code}
                   onChange={(value) => setCode(value || '')}
                   theme="vs-dark"
