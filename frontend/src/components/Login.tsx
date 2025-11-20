@@ -102,14 +102,13 @@ const Login: React.FC = () => {
       );
 
       if (result.success) {
-        
         navigate('/');
       } else {
-        // Show error as toast notification
-        showError(result.error || 'Invalid credentials');
-        // If server indicates rate limiting, start a short cooldown
-        if (typeof result.error === 'string' && /too many requests/i.test(result.error)) {
-          setCooldownSeconds(10); // 10 second cooldown
+        const message = result.error || 'Invalid credentials';
+        showError(message);
+        // Start a cooldown on explicit rate limit messages
+        if (typeof message === 'string' && /too many (requests|login attempts)/i.test(message)) {
+          setCooldownSeconds(15);
         }
       }
     } catch (error) {

@@ -106,7 +106,7 @@ const validateLogin = (req, res, next) => {
 // @route   POST /api/auth/signup
 // @desc    Register a new user
 // @access  Public
-router.post('/signup', authLimiter, sanitizeInput, validateSignup, async (req, res) => {
+router.post('/signup', sanitizeInput, validateSignup, async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -182,7 +182,7 @@ router.post('/signup', authLimiter, sanitizeInput, validateSignup, async (req, r
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', loginLimiter, sanitizeInput, validateLogin, async (req, res) => {
+router.post('/login', sanitizeInput, validateLogin, async (req, res) => {
   try {
     const { identifier, password, rememberMe } = req.body;
 
@@ -304,7 +304,7 @@ router.get('/me', authenticateToken, (req, res) => {
 // @route   POST /api/auth/forgot-password
 // @desc    Request password reset
 // @access  Public
-router.post('/forgot-password', authLimiter, sanitizeInput, async (req, res) => {
+router.post('/forgot-password', sanitizeInput, async (req, res) => {
   try {
     const { email } = req.body;
 
