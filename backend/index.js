@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const path = require('path');
+const fs = require('fs-extra');
 const { getBinaryStatuses } = require('./services/codeExecutor');
 
 // Import routes
@@ -107,6 +108,9 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
+
+fs.ensureDir(path.join(__dirname, 'temp')).catch(err => console.error('Dir create error:', err));
+fs.ensureDir(path.join(__dirname, 'uploads')).catch(err => console.error('Dir create error:', err));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

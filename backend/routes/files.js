@@ -7,7 +7,11 @@ const router = express.Router();
 // Use auth middleware alias for consistency with existing code
 const auth = authenticateToken;
 
-// Save code file
+router.use((req, res, next) => {
+  console.log(`[FILES] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 router.post('/save', auth, async (req, res) => {
   try {
     const { filename, code, language } = req.body;
@@ -59,6 +63,61 @@ router.post('/save', auth, async (req, res) => {
         file: codeFile
       });
     }
+  } catch (error) {
+    console.error('Save file error:', error);
+    res.status(500).json({ 
+      error: 'Failed to save file, check database connection.',
+      details: error.message 
+    });
+  }
+});
+
+router.post('/', auth, async (req, res) => {
+  try {
+    const { filename, code, language } = req.body;
+
+    if (!filename || !code || !language) {
+      return res.status(400).json({ error: 'Filename, code, and language are required' });
+    }
+
+    if (!filename.trim()) {
+      return res.status(400).json({ error: 'Filename cannot be empty' });
+    }
+
+    if (!code.trim()) {
+      return res.status(400).json({ error: 'Code cannot be empty' });
+    }
+
+    const existingFile = await CodeFile.findOne({
+      userId: req.user._id,
+      filename
+    });
+
+    if (existingFile) {
+      existingFile.code = code;
+      existingFile.language = language;
+      existingFile.updatedAt = new Date();
+      await existingFile.save();
+
+      return res.json({
+        message: 'File updated successfully',
+        file: existingFile
+      });
+    }
+
+    const codeFile = new CodeFile({
+      userId: req.user._id,
+      filename,
+      code,
+      language
+    });
+
+    await codeFile.save();
+
+    res.status(201).json({
+      message: 'File saved successfully',
+      file: codeFile
+    });
   } catch (error) {
     console.error('Save file error:', error);
     res.status(500).json({ 
