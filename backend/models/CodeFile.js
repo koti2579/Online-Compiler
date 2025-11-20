@@ -20,7 +20,7 @@ const codeFileSchema = new mongoose.Schema({
   language: {
     type: String,
     required: true,
-    enum: ['javascript', 'python', 'cpp', 'c', 'php']
+    enum: ['javascript', 'python', 'cpp', 'c']
   }
 }, {
   timestamps: true

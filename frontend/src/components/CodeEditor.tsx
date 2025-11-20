@@ -110,9 +110,6 @@ const CodeEditor: React.FC = () => {
 
   const toEditorLanguage = (lang: string, filename?: string | null) => {
     const ext = (filename || '').toLowerCase();
-    if (lang === 'php' || ext.endsWith('.php') || ext.endsWith('.phtml')) {
-      return 'plaintext';
-    }
     if (lang === 'java' || ext.endsWith('.java')) {
       return 'plaintext';
     }

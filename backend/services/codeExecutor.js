@@ -35,9 +35,6 @@ const executeCode = async (code, language, input = '') => {
       case 'c':
         result = await executeC(code, input, sessionDir);
         break;
-      case 'php':
-        result = await executePhp(code, input, sessionDir);
-        break;
       default:
         throw new Error(`Unsupported language: ${language}`);
     }
@@ -178,10 +175,6 @@ const ensureWinExe = (candidate) => {
 
 // Binary path resolution to support non-standard installs and env overrides
 const resolveBinary = (name) => {
-  if (name === 'php') {
-    const fromEnv = process.env.PHP_PATH;
-    return fromEnv ? ensureWinExe(fromEnv) : 'php';
-  }
   if (name === 'gcc') {
     const fromEnv = process.env.GCC_PATH;
     return fromEnv ? ensureWinExe(fromEnv) : 'gcc';
@@ -205,12 +198,7 @@ const checkBinary = (name) => {
     proc.stdout.on('data', (d) => { out += d.toString(); });
     proc.stderr.on('data', (d) => { err += d.toString(); });
 
-    const hintFor = (tool) => {
-      if (tool === 'php') {
-        return 'Install PHP CLI and set PHP_PATH in .env';
-      }
-      return 'Ensure the tool is installed and on PATH';
-    };
+    const hintFor = () => 'Ensure the tool is installed and on PATH';
 
     proc.on('error', (e) => {
       resolve({ name, path: bin, available: false, version: '', error: e.message, hint: hintFor(name) });
@@ -225,7 +213,7 @@ const checkBinary = (name) => {
 
 // Expose statuses for health checks
 const getBinaryStatuses = async () => {
-  const targets = ['php'];
+  const targets = ['node', 'python', 'gcc', 'g++'];
   const results = await Promise.all(targets.map(checkBinary));
   return results;
 };
@@ -393,60 +381,6 @@ const executeC = async (code, input, sessionDir) => {
           exitCode: 1,
           executionTime: Date.now()
         });
-      });
-    });
-  });
-};
-
-const executePhp = async (code, input, sessionDir) => {
-  const filename = path.join(sessionDir, 'script.php');
-  
-  // Ensure PHP code starts with <?php
-  const phpCode = code.startsWith('<?php') ? code : `<?php\n${code}`;
-  
-  await fs.writeFile(filename, phpCode);
-  
-  return new Promise((resolve) => {
-    const process = spawn(resolveBinary('php'), [filename], {
-      cwd: sessionDir,
-      timeout: EXECUTION_TIMEOUT
-    });
-
-    let output = '';
-    let error = '';
-
-    if (input) {
-      process.stdin.write(input);
-      process.stdin.end();
-    }
-
-    process.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-
-    process.stderr.on('data', (data) => {
-      error += data.toString();
-    });
-
-    process.on('close', (code) => {
-      resolve({
-        output: output.trim(),
-        error: error.trim(),
-        exitCode: code,
-        executionTime: Date.now()
-      });
-    });
-
-    process.on('error', (err) => {
-      // Provide clearer messaging when PHP runtime is missing
-      const msg = err.code === 'ENOENT'
-        ? `PHP runtime not available: ${err.message}`
-        : err.message;
-      resolve({
-        output: '',
-        error: msg,
-        exitCode: 1,
-        executionTime: Date.now()
       });
     });
   });

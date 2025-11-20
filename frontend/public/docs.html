@@ -174,7 +174,7 @@
         </ul>
         <h3>Success Criteria</h3>
         <ul>
-          <li>Multi‑language support: JavaScript, Python, C/C++</li>
+          <li>Multi‑language support: JavaScript, Python, C/C++ (PHP removed)</li>
           <li>Median run latency under 2 seconds for typical snippets</li>
           <li>JWT‑based auth protecting file operations and code execution</li>
           <li>Users complete “write → run → save” in ≤3 clicks</li>
@@ -242,7 +242,7 @@
         <p>Response contains <code>output</code>, <code>error</code>, <code>exitCode</code>, and <code>executionTime</code>.</p>
         <h3>Validation & Limits</h3>
         <ul>
-          <li>Supported languages: <code>javascript</code>, <code>python</code>, <code>cpp</code>, <code>c</code></li>
+          <li>Supported languages: <code>javascript</code>, <code>python</code>, <code>cpp</code>, <code>c</code> (PHP removed)</li>
           <li>Code length limit: 50KB</li>
           <li>Rate limiting applied to execution route</li>
         </ul>
@@ -351,7 +351,7 @@ npm start</pre>
       <section id="changelog">
         <h2>Changelog</h2>
         <ul>
-          <li>Removed frontend PHP support; `.php`/`.phtml` rendered as plain text.</li>
+          <li>Removed PHP support across frontend and backend; endpoints and execution removed.</li>
           <li>Removed Java support across frontend and backend execution APIs.</li>
         </ul>
       </section>
